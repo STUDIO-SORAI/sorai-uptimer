@@ -1,0 +1,198 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import OverallStatus from '../components/OverallStatus.astro';
+import MetricStats from '../components/MetricStats.astro';
+import MonitorCard from '../components/MonitorCard.astro';
+import WebhookModal from '../components/WebhookModal.astro';
+import Footer from '../components/Footer.astro';
+import { MONITORED_SITES } from '../config/sites';
+import { pingAllSites } from '../lib/pinger';
+import { getAllSitesStatusData, savePingResult } from '../lib/storage';
+
+export const prerender = false;
+
+// Perform fresh ping on SSR page load
+const liveResults = await pingAllSites(MONITORED_SITES);
+for (const r of liveResults) {
+  await savePingResult(r);
+}
+
+const siteStatuses = await getAllSitesStatusData(liveResults);
+
+const downCount = siteStatuses.filter((s) => s.current.status === 'down').length;
+const degradedCount = siteStatuses.filter((s) => s.current.status === 'degraded').length;
+const operationalCount = siteStatuses.filter((s) => s.current.status === 'operational').length;
+
+let overallStatus: 'operational' | 'degraded' | 'down' = 'operational';
+if (downCount > 0) {
+  overallStatus = 'down';
+} else if (degradedCount > 0) {
+  overallStatus = 'degraded';
+}
+
+const updatedAt = new Date().toLocaleTimeString('en-US', {
+  hour12: false,
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+});
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>System Status | Uptime Monitor</title>
+    <meta name="description" content="Real-time uptime status monitor built with Astro and Vercel aesthetic." />
+  </head>
+  <body class="bg-black text-white min-h-screen selection:bg-neutral-800">
+    <div class="relative min-h-screen flex flex-col justify-between">
+      <!-- Background subtle glow -->
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-64 bg-radial from-blue-900/10 via-transparent to-transparent pointer-events-none -z-10"></div>
+
+      <div class="w-full">
+        <Header updatedAt={updatedAt} />
+
+        <main class="w-full">
+          <OverallStatus
+            status={overallStatus}
+            operationalCount={operationalCount}
+            totalCount={siteStatuses.length}
+          />
+
+          <MetricStats sites={siteStatuses} />
+
+          <!-- Services Monitor List Container -->
+          <section class="w-full max-w-4xl mx-auto px-4">
+            <div class="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg p-5 sm:p-6 shadow-2xl">
+              <div class="flex items-center justify-between pb-4 border-b border-[#1f1f1f]">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                  Monitored Services ({siteStatuses.length})
+                </h2>
+                <div class="flex items-center gap-2 text-xs text-neutral-500 font-mono">
+                  <span class="inline-block w-2 h-2 rounded-full bg-[#0070f3] animate-pulse"></span>
+                  <span id="next-refresh-timer">Auto-refresh in 60s</span>
+                </div>
+              </div>
+
+              <div id="monitors-container">
+                {siteStatuses.map((data) => (
+                  <MonitorCard data={data} />
+                ))}
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <Footer />
+      <WebhookModal />
+    </div>
+
+    <!-- Client-side script for Live Refresh & Webhook Modal -->
+    <script>
+      let secondsLeft = 60;
+      const timerElement = document.getElementById('next-refresh-timer');
+      const refreshBtn = document.getElementById('refresh-btn');
+      const refreshIcon = document.getElementById('refresh-icon');
+      const refreshText = document.getElementById('refresh-text');
+
+      // Countdown interval
+      setInterval(() => {
+        secondsLeft--;
+        if (timerElement) {
+          timerElement.innerText = `Auto-refresh in ${secondsLeft}s`;
+        }
+        if (secondsLeft <= 0) {
+          triggerRefresh();
+        }
+      }, 1000);
+
+      async function triggerRefresh() {
+        secondsLeft = 60;
+        if (refreshIcon) refreshIcon.classList.add('animate-spin');
+        if (refreshText) refreshText.innerText = 'Pinging...';
+
+        try {
+          // Call ping API
+          await fetch('/api/ping');
+          // Reload page to display freshest SSR data & timeline
+          window.location.reload();
+        } catch (e) {
+          console.error('Refresh failed:', e);
+        } finally {
+          if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+          if (refreshText) refreshText.innerText = 'Ping Now';
+        }
+      }
+
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+          triggerRefresh();
+        });
+      }
+
+      // Webhook modal handling
+      const webhookModal = document.getElementById('webhook-modal');
+      const openModalBtn = document.getElementById('open-webhook-modal');
+      const closeModalBtn = document.getElementById('close-webhook-modal');
+      const sendTestBtn = document.getElementById('send-test-alert-btn');
+      const testStatus = document.getElementById('test-alert-status');
+      const discordInput = document.getElementById('discord-url-input') as HTMLInputElement;
+
+      function openModal() {
+        if (!webhookModal) return;
+        webhookModal.classList.remove('hidden');
+        setTimeout(() => webhookModal.classList.remove('opacity-0'), 10);
+      }
+
+      function closeModal() {
+        if (!webhookModal) return;
+        webhookModal.classList.add('opacity-0');
+        setTimeout(() => webhookModal.classList.add('hidden'), 200);
+      }
+
+      openModalBtn?.addEventListener('click', openModal);
+      closeModalBtn?.addEventListener('click', closeModal);
+      webhookModal?.addEventListener('click', (e) => {
+        if (e.target === webhookModal) closeModal();
+      });
+
+      sendTestBtn?.addEventListener('click', async () => {
+        if (!sendTestBtn || !testStatus) return;
+        sendTestBtn.innerText = 'Sending alert...';
+        sendTestBtn.setAttribute('disabled', 'true');
+        testStatus.classList.add('hidden');
+
+        try {
+          const res = await fetch('/api/test-webhook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ webhookUrl: discordInput?.value?.trim() || undefined }),
+          });
+          const data = await res.json();
+
+          testStatus.classList.remove('hidden');
+          if (data.success) {
+            testStatus.className = 'text-[11px] p-2.5 rounded-md border border-emerald-900 bg-emerald-950/60 text-emerald-300';
+            testStatus.innerText = '✅ Discord Alert Sent Successfully!';
+          } else {
+            testStatus.className = 'text-[11px] p-2.5 rounded-md border border-rose-900 bg-rose-950/60 text-rose-300';
+            testStatus.innerText = `❌ ${data.message || 'Failed to send alert'}`;
+          }
+        } catch (e: any) {
+          testStatus.classList.remove('hidden');
+          testStatus.className = 'text-[11px] p-2.5 rounded-md border border-rose-900 bg-rose-950/60 text-rose-300';
+          testStatus.innerText = `❌ Request error: ${e.message}`;
+        } finally {
+          sendTestBtn.innerText = 'Send Test Discord Alert';
+          sendTestBtn.removeAttribute('disabled');
+        }
+      });
+    </script>
+  </body>
+</html>

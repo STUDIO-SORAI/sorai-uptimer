@@ -1,0 +1,37 @@
+---
+import type { SiteStatusData } from '../lib/types';
+
+interface Props {
+  sites: SiteStatusData[];
+}
+
+const { sites } = Astro.props;
+
+const totalLatency = sites.reduce((sum, s) => sum + s.current.responseTime, 0);
+const avgResponseTime = sites.length > 0 ? Math.round(totalLatency / sites.length) : 0;
+
+const totalUptime = sites.reduce((sum, s) => sum + s.uptime90d, 0);
+const avgUptime = sites.length > 0 ? (totalUptime / sites.length).toFixed(2) : '100.00';
+---
+
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto px-4 mb-8">
+  <div class="bg-[#0c0c0c] border border-[#1e1e1e] rounded-md p-3.5">
+    <div class="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Overall Uptime</div>
+    <div class="text-xl font-bold text-white font-mono mt-1">{avgUptime}%</div>
+  </div>
+
+  <div class="bg-[#0c0c0c] border border-[#1e1e1e] rounded-md p-3.5">
+    <div class="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Avg Latency</div>
+    <div class="text-xl font-bold text-white font-mono mt-1">{avgResponseTime}ms</div>
+  </div>
+
+  <div class="bg-[#0c0c0c] border border-[#1e1e1e] rounded-md p-3.5">
+    <div class="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Monitored Sites</div>
+    <div class="text-xl font-bold text-white font-mono mt-1">{sites.length} Active</div>
+  </div>
+
+  <div class="bg-[#0c0c0c] border border-[#1e1e1e] rounded-md p-3.5">
+    <div class="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">Ping Frequency</div>
+    <div class="text-xl font-bold text-white font-mono mt-1">1 min</div>
+  </div>
+</div>
