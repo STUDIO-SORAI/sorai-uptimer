@@ -3,7 +3,7 @@ export interface MonitoredSite {
   name: string;
   url: string;
   group?: string;
-  expectedStatus?: number;
+  expectedStatus?: number | number[];
   timeoutMs?: number;
 }
 
