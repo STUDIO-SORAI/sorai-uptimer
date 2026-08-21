@@ -1,5 +1,7 @@
 # ⚡ Vercel-Style Uptime Monitor (Astro)
 
+**Live Status**: [https://stats.sorai.tw](https://stats.sorai.tw)
+
 A high-performance, serverless Uptime Monitor and Status Dashboard built with **Astro**, styled after **Vercel's official status page** (sleek dark aesthetic, 90-day interactive bar timeline, live latency tracking, Discord Webhook outage alerts, and 1-minute ping interval).
 
 ---
