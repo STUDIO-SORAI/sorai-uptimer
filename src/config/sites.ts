@@ -13,7 +13,6 @@ export const MONITORED_SITES: MonitoredSite[] = [
     name: 'Bax Website',
     url: 'https://bax.vision',
     group: 'Main Services',
-    expectedStatus: 200,
     timeoutMs: 10000,
   },
   {
@@ -21,7 +20,6 @@ export const MONITORED_SITES: MonitoredSite[] = [
     name: 'STUDIO SORAI',
     url: 'https://sorai.tw',
     group: 'Main Services',
-    expectedStatus: 200,
     timeoutMs: 10000,
   },
   {
@@ -29,7 +27,6 @@ export const MONITORED_SITES: MonitoredSite[] = [
     name: 'ESPORTS SORAI',
     url: 'https://esports.sorai.tw',
     group: 'Gaming & Esports',
-    expectedStatus: 200,
     timeoutMs: 10000,
   },
 ];
