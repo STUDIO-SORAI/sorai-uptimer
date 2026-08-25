@@ -29,6 +29,7 @@ const statusColor = isOperational
   <!-- Title & Current Status -->
   <div class="flex items-center justify-between mb-3.5">
     <div class="flex items-center gap-2">
+      <span class="text-neutral-500 font-mono text-xs select-none">›</span>
       <a
         href={site.url}
         target="_blank"
@@ -41,6 +42,11 @@ const statusColor = isOperational
         </svg>
       </a>
       <span class="text-xs text-neutral-500 font-mono">({new URL(site.url).hostname})</span>
+      {site.group && (
+        <span class="hidden sm:inline-block text-[10px] uppercase font-mono text-neutral-500 bg-neutral-900 border border-neutral-800 px-1.5 py-0.5 rounded ml-1">
+          {site.group}
+        </span>
+      )}
     </div>
 
     <div class="flex items-center gap-3">

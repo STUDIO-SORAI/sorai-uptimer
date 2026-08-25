@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import OverallStatus from '../components/OverallStatus.astro';
 import MetricStats from '../components/MetricStats.astro';
 import MonitorCard from '../components/MonitorCard.astro';
+import PastIncidents from '../components/PastIncidents.astro';
 import WebhookModal from '../components/WebhookModal.astro';
 import Footer from '../components/Footer.astro';
 import { MONITORED_SITES } from '../config/sites';
@@ -37,6 +38,9 @@ const updatedAt = new Date().toLocaleTimeString('en-US', {
   minute: '2-digit',
   second: '2-digit',
 });
+
+// Group sites by Category / Group
+const groups = Array.from(new Set(siteStatuses.map((s) => s.site.group || 'Main Services')));
 ---
 
 <!doctype html>
@@ -69,9 +73,9 @@ const updatedAt = new Date().toLocaleTimeString('en-US', {
           <!-- Services Monitor List Container -->
           <section class="w-full max-w-4xl mx-auto px-4">
             <div class="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg p-5 sm:p-6 shadow-2xl">
-              <div class="flex items-center justify-between pb-4 border-b border-[#1f1f1f]">
-                <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                  Monitored Services ({siteStatuses.length})
+              <div class="flex items-center justify-between pb-4 border-b border-[#1f1f1f] mb-4">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-300">
+                  Services by Category ({groups.length} Categories • {siteStatuses.length} Endpoints)
                 </h2>
                 <div class="flex items-center gap-2 text-xs text-neutral-500 font-mono">
                   <span class="inline-block w-2 h-2 rounded-full bg-[#0070f3] animate-pulse"></span>
@@ -79,13 +83,32 @@ const updatedAt = new Date().toLocaleTimeString('en-US', {
                 </div>
               </div>
 
-              <div id="monitors-container">
-                {siteStatuses.map((data) => (
-                  <MonitorCard data={data} />
-                ))}
+              <div id="monitors-container" class="space-y-6">
+                {groups.map((groupName) => {
+                  const groupSites = siteStatuses.filter((s) => (s.site.group || 'Main Services') === groupName);
+                  return (
+                    <div class="bg-[#0e0e0e] border border-[#1a1a1a] rounded-lg p-4">
+                      <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-2 px-1 flex items-center justify-between border-b border-[#1f1f1f] pb-2">
+                        <span class="flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-[#0070f3]"></span>
+                          {groupName}
+                        </span>
+                        <span class="text-neutral-500 font-mono text-[10px]">{groupSites.length} Active</span>
+                      </div>
+                      <div>
+                        {groupSites.map((data) => (
+                          <MonitorCard data={data} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>
+
+          <!-- Past 3 Days Incidents Section -->
+          <PastIncidents sites={siteStatuses} />
         </main>
       </div>
 
