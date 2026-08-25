@@ -2,13 +2,14 @@ import type { MonitoredSite } from '../config/sites';
 import type { PingResult, ServiceStatus } from './types';
 
 export async function pingSite(site: MonitoredSite): Promise<PingResult> {
+  const targetUrl = site.probeUrl || site.url;
   const timeoutMs = site.timeoutMs || 10000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   const startTime = performance.now();
 
   try {
-    const response = await fetch(site.url, {
+    const response = await fetch(targetUrl, {
       method: 'GET',
       signal: controller.signal,
       headers: {
