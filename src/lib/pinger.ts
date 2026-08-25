@@ -37,15 +37,14 @@ export async function pingSite(site: MonitoredSite): Promise<PingResult> {
     let status: ServiceStatus = 'operational';
     let error: string | undefined = undefined;
 
-    // Status evaluation:
-    // 200-399: Normal success/redirects
-    // 401/403: Site is up and protected by Auth / Cloudflare Bot Fight Mode on datacenter IPs
-    // 500-599 or timeout: Site is down / origin server error
+    // Strict Status evaluation:
+    // 200-399: Operational (normal response / redirect)
+    // 400+: Down (including 403 blocked, 500 error, 502 Bad Gateway, 503, 504)
     const isExpected = site.expectedStatus
       ? Array.isArray(site.expectedStatus)
         ? site.expectedStatus.includes(statusCode)
         : site.expectedStatus === statusCode
-      : statusCode >= 200 && statusCode < 500;
+      : statusCode >= 200 && statusCode < 400;
 
     if (isExpected) {
       if (responseTime > 3000) {
