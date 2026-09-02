@@ -1,30 +1,41 @@
 ---
 interface Props {
   updatedAt: string;
+  status?: 'operational' | 'degraded' | 'down';
 }
 
-const { updatedAt } = Astro.props;
+const { updatedAt, status = 'operational' } = Astro.props;
+const statusText =
+  status === 'operational' ? 'All systems operational' : status === 'degraded' ? 'Degraded' : 'Outage';
+const statusClass =
+  status === 'operational'
+    ? 'text-neutral-500'
+    : status === 'degraded'
+      ? 'text-[#f5a623]'
+      : 'text-[#ef4444]';
+const dotClass =
+  status === 'operational' ? 'bg-[#3ddc97]' : status === 'degraded' ? 'bg-[#f5a623]' : 'bg-[#ef4444]';
 ---
 
-<header class="w-full max-w-4xl mx-auto pt-8 pb-6 px-4 flex items-center justify-between">
-  <div class="flex items-center gap-3">
-    <!-- Vercel Triangle Logo -->
-    <a href="/" class="group flex items-center gap-3 transition-opacity hover:opacity-80">
-      <svg
-        class="w-6 h-6 text-white fill-current transition-transform duration-300 group-hover:scale-105"
-        viewBox="0 0 1155 1000"
-      >
-        <path d="M577.347 0L1154.69 1000H0L577.347 0Z" />
-      </svg>
+<header class="w-full max-w-4xl mx-auto pt-8 pb-6 px-4 flex items-center justify-between gap-3">
+  <a href="/" class="group flex items-center gap-3 min-w-0 transition-opacity hover:opacity-80">
+    <img src="/logo.png" alt="" width="28" height="28" class="w-7 h-7 shrink-0 rounded-md" />
+    <div class="min-w-0">
       <div class="flex items-center gap-2">
         <span class="text-sm font-semibold tracking-tight text-white">Status</span>
         <span class="text-[10px] font-mono uppercase bg-neutral-900 text-neutral-400 px-1.5 py-0.5 rounded border border-neutral-800">Live</span>
       </div>
-    </a>
-  </div>
+      <div class={`hidden sm:flex items-center gap-1.5 mt-0.5 text-[11px] ${statusClass}`}>
+        <span class={`w-1.5 h-1.5 rounded-full ${dotClass}`}></span>
+        <span>{statusText}</span>
+      </div>
+    </div>
+  </a>
 
-  <div class="flex items-center gap-3">
-    <!-- Manual refresh trigger -->
+  <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+    <span class={`sm:hidden text-[10px] ${statusClass} flex items-center gap-1`}>
+      <span class={`w-1.5 h-1.5 rounded-full ${dotClass}`}></span>
+    </span>
     <button
       id="refresh-btn"
       class="text-xs font-medium bg-[#111] hover:bg-[#1a1a1a] text-neutral-300 hover:text-white px-3 py-1.5 rounded-md border border-[#262626] transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
@@ -34,14 +45,6 @@ const { updatedAt } = Astro.props;
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
       </svg>
       <span id="refresh-text">Ping Now</span>
-    </button>
-
-    <!-- Test Discord Webhook Button -->
-    <button
-      id="open-webhook-modal"
-      class="text-xs font-medium bg-white hover:bg-neutral-200 text-black px-3.5 py-1.5 rounded-md transition-all shadow-sm active:scale-95 cursor-pointer font-sans"
-    >
-      Discord Webhook
     </button>
   </div>
 </header>
