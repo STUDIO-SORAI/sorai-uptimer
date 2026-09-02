@@ -16,7 +16,7 @@ function authorized(request: Request): boolean {
 
 async function handle({ request }: { request: Request }) {
   if (!authorized(request)) {
-    return json({ error: '未授權' }, 401);
+    return json({ error: 'unauthorized' }, 401);
   }
   try {
     const result = await runAllChecks(getDb());

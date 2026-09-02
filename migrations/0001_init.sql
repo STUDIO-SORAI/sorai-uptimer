@@ -43,3 +43,19 @@ CREATE INDEX IF NOT EXISTS idx_incidents_monitor
   ON incidents(monitor_id, ended_at);
 CREATE INDEX IF NOT EXISTS idx_monitors_due
   ON monitors(enabled, last_checked_at);
+
+INSERT INTO monitors (name, url, interval_min, expected_status, enabled)
+SELECT 'Bax Website', 'https://bax.vision', 1, 200, 1
+WHERE NOT EXISTS (SELECT 1 FROM monitors WHERE url = 'https://bax.vision');
+
+INSERT INTO monitors (name, url, interval_min, expected_status, enabled)
+SELECT 'STUDIO SORAI', 'https://sorai.tw', 1, 200, 1
+WHERE NOT EXISTS (SELECT 1 FROM monitors WHERE url = 'https://sorai.tw');
+
+INSERT INTO monitors (name, url, interval_min, expected_status, enabled)
+SELECT 'ESPORTS SORAI', 'https://esports.sorai.tw', 1, 200, 1
+WHERE NOT EXISTS (SELECT 1 FROM monitors WHERE url = 'https://esports.sorai.tw');
+
+INSERT INTO monitors (name, url, interval_min, expected_status, enabled)
+SELECT 'SORAI CMS', 'https://cms.sorai.tw', 1, 200, 1
+WHERE NOT EXISTS (SELECT 1 FROM monitors WHERE url = 'https://cms.sorai.tw');
