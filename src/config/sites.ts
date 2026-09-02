@@ -3,8 +3,9 @@ export interface MonitoredSite {
   name: string;
   url: string;
   probeUrl?: string;
+  fallbackUrl?: string;
   group?: string;
-  expectedStatus?: number | number[];
+  expectedStatus?: number;
   timeoutMs?: number;
 }
 
@@ -14,6 +15,7 @@ export const MONITORED_SITES: MonitoredSite[] = [
     name: 'Bax Website',
     url: 'https://bax.vision',
     probeUrl: 'https://bax.vision/robots.txt',
+    fallbackUrl: 'https://bax.vision/',
     group: 'Main Services',
     timeoutMs: 10000,
   },
@@ -21,7 +23,7 @@ export const MONITORED_SITES: MonitoredSite[] = [
     id: 'sorai-tw',
     name: 'STUDIO SORAI',
     url: 'https://sorai.tw',
-    probeUrl: 'https://sorai.tw/robots.txt',
+    probeUrl: 'https://sorai.tw/',
     group: 'Main Services',
     timeoutMs: 10000,
   },
@@ -30,7 +32,17 @@ export const MONITORED_SITES: MonitoredSite[] = [
     name: 'ESPORTS SORAI',
     url: 'https://esports.sorai.tw',
     probeUrl: 'https://esports.sorai.tw/robots.txt',
+    fallbackUrl: 'https://esports.sorai.tw/',
     group: 'Gaming & Esports',
+    timeoutMs: 10000,
+  },
+  {
+    id: 'cms-sorai-tw',
+    name: 'SORAI CMS',
+    url: 'https://cms.sorai.tw',
+    probeUrl: 'https://cms.sorai.tw/admin',
+    fallbackUrl: 'https://cms.sorai.tw/robots.txt',
+    group: 'Platform',
     timeoutMs: 10000,
   },
 ];
