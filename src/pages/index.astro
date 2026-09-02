@@ -20,6 +20,7 @@ try {
 
 const downCount = siteStatuses.filter((s) => s.current.status === 'down').length;
 const degradedCount = siteStatuses.filter((s) => s.current.status === 'degraded').length;
+const operationalCount = siteStatuses.filter((s) => s.current.status === 'operational').length;
 
 let overallStatus: 'operational' | 'degraded' | 'down' = 'operational';
 if (downCount > 0) overallStatus = 'down';

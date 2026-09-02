@@ -7,12 +7,11 @@ interface Props {
 
 const { sites } = Astro.props;
 
-// Generate past 3 days topics / incidents
 const now = new Date();
 const past3Days = [0, 1, 2].map((offset) => {
   const d = new Date(now);
   d.setDate(d.getDate() - offset);
-  
+
   const dateFormatted = d.toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
@@ -23,10 +22,7 @@ const past3Days = [0, 1, 2].map((offset) => {
   const isYesterday = offset === 1;
   const label = isToday ? 'Today' : isYesterday ? 'Yesterday' : `${offset} days ago`;
 
-  // Check if any site was down on this day
-  const downSites = isToday
-    ? sites.filter((s) => s.current.status === 'down')
-    : [];
+  const downSites = isToday ? sites.filter((s) => s.current.status === 'down') : [];
 
   return {
     date: dateFormatted,
@@ -38,7 +34,7 @@ const past3Days = [0, 1, 2].map((offset) => {
 ---
 
 <section class="w-full max-w-4xl mx-auto px-4 mt-8">
-  <div class="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg p-5 sm:p-6 shadow-2xl">
+  <div class="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg p-3 sm:p-6 shadow-2xl">
     <h2 class="text-sm font-semibold uppercase tracking-wider text-neutral-300 pb-4 border-b border-[#1f1f1f] flex items-center justify-between">
       <span>Past Incidents</span>
       <span class="text-xs text-neutral-500 font-mono font-normal">Recent 3 Days</span>
@@ -47,7 +43,7 @@ const past3Days = [0, 1, 2].map((offset) => {
     <div class="divide-y divide-[#171717]">
       {past3Days.map((day) => (
         <div class="py-4 first:pt-4 last:pb-0">
-          <div class="flex items-center justify-between mb-2">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
             <h3 class="text-xs font-semibold text-neutral-200">
               {day.date} <span class="text-neutral-500 font-normal">({day.label})</span>
             </h3>
@@ -67,7 +63,7 @@ const past3Days = [0, 1, 2].map((offset) => {
               {day.downSites.map((s) => (
                 <div class="text-xs bg-[#141414] border border-red-900/30 rounded p-2.5 text-neutral-300">
                   <div class="font-medium text-red-400 mb-0.5">
-                    🔴 Service Outage: {s.site.name} ({new URL(s.site.url).hostname})
+                    Service Outage: {s.site.name} ({new URL(s.site.url).hostname})
                   </div>
                   <div class="text-[11px] text-neutral-400">
                     Endpoint returned error response or timed out.
