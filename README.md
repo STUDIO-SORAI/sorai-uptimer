@@ -4,7 +4,6 @@ Open-source public status page and website uptime monitor. It runs on the **Clou
 
 Live:
 
-- [dash.bax.vision](https://dash.bax.vision)
 - [stat.sorai.tw](https://stat.sorai.tw)
 - [s.sorai.tw](https://s.sorai.tw)
 
@@ -55,7 +54,7 @@ Point `probeUrl` at a path that exists on origin. Keep `fallbackUrl` as a second
 Needs Node 22+ and a Cloudflare account.
 
 ```bash
-git clone https://github.com/Batkixni/sorai-uptime.git
+git clone https://github.com/STUDIO-SORAI/sorai-uptime.git
 cd sorai-uptime
 npm install
 cp .dev.vars.example .dev.vars
