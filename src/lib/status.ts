@@ -67,11 +67,11 @@ export async function buildSiteStatuses(db: D1Database): Promise<SiteStatusData[
     const uptime90d =
       withData.length === 0
         ? 100
-        : Math.round((withData.reduce((s, h) => s + h.uptimePercent, 0) / withData.length) * 100) / 100;
+        : Math.round((withData.reduce((sum, h) => sum + h.uptimePercent, 0) / withData.length) * 100) / 100;
     const avgLatency =
       withData.length === 0
         ? 0
-        : Math.round(withData.reduce((s, h) => s + s.avgLatency, 0) / withData.length);
+        : Math.round(withData.reduce((sum, h) => sum + h.avgLatency, 0) / withData.length);
 
     const status = monitor ? toServiceStatus(monitor.last_status) : 'down';
     const current: PingResult = {
