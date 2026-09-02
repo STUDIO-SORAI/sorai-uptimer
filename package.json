@@ -1,18 +1,27 @@
 {
-  "name": "amazing-lavoisier",
+  "name": "pulse-uptime",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
   "type": "module",
+  "description": "Pulse — Cloudflare Workers 免費方案網站監控（Astro + D1 + Cron）",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "deploy": "astro build && wrangler deploy",
+    "db:create": "wrangler d1 create pulse",
+    "db:local": "wrangler d1 execute pulse --local --file=./schema.sql",
+    "db:remote": "wrangler d1 execute pulse --remote --file=./schema.sql"
   },
   "dependencies": {
-    "@astrojs/vercel": "^11.0.7",
+    "@astrojs/cloudflare": "^14.2.6",
+    "@rolldown/binding-linux-x64-gnu": "^1.2.6",
     "@tailwindcss/vite": "^4.3.3",
-    "astro": "^7.2.4",
+    "astro": "^7.2.10",
     "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.128.0"
   }
 }
