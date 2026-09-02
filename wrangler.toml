@@ -8,6 +8,9 @@ directory = "./dist/client"
 binding = "ASSETS"
 run_worker_first = true
 
+# [[routes]] custom domains are optional.
+# This instance uses dash.bax.vision, stat.sorai.tw, and s.sorai.tw.
+# Remove or replace these routes when forking.
 [[routes]]
 pattern = "dash.bax.vision"
 custom_domain = true
@@ -20,6 +23,7 @@ custom_domain = true
 pattern = "s.sorai.tw"
 custom_domain = true
 
+# database_id must be replaced after `wrangler d1 create`.
 [[d1_databases]]
 binding = "DB"
 database_name = "pulse"

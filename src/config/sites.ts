@@ -1,3 +1,8 @@
+/**
+ * This file is the only place to configure monitored URLs.
+ * Edit MONITORED_SITES to add, remove, or change what the Worker probes.
+ * Discord routing uses the optional `webhooks` field (defaults to ['primary']).
+ */
 export interface MonitoredSite {
   id: string;
   name: string;
@@ -7,6 +12,7 @@ export interface MonitoredSite {
   group?: string;
   expectedStatus?: number;
   timeoutMs?: number;
+  webhooks?: Array<'primary' | 'sorai'>;
 }
 
 export const MONITORED_SITES: MonitoredSite[] = [
@@ -18,6 +24,7 @@ export const MONITORED_SITES: MonitoredSite[] = [
     fallbackUrl: 'https://bax.vision/',
     group: 'Main Services',
     timeoutMs: 10000,
+    webhooks: ['primary'],
   },
   {
     id: 'sorai-tw',
@@ -26,6 +33,7 @@ export const MONITORED_SITES: MonitoredSite[] = [
     probeUrl: 'https://sorai.tw/',
     group: 'Main Services',
     timeoutMs: 10000,
+    webhooks: ['primary'],
   },
   {
     id: 'esports-sorai-tw',
@@ -35,6 +43,7 @@ export const MONITORED_SITES: MonitoredSite[] = [
     fallbackUrl: 'https://esports.sorai.tw/',
     group: 'Gaming & Esports',
     timeoutMs: 10000,
+    webhooks: ['primary', 'sorai'],
   },
   {
     id: 'cms-sorai-tw',
@@ -44,5 +53,6 @@ export const MONITORED_SITES: MonitoredSite[] = [
     fallbackUrl: 'https://cms.sorai.tw/robots.txt',
     group: 'Platform',
     timeoutMs: 10000,
+    webhooks: ['primary', 'sorai'],
   },
 ];

@@ -1,9 +1,9 @@
 {
-  "name": "pulse-uptime",
+  "name": "sorai-uptime",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Pulse — Cloudflare Workers 免費方案網站監控（Astro + D1 + Cron）",
+  "description": "Public status page and uptime monitor on Cloudflare Workers (Astro + D1 + Cron).",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
