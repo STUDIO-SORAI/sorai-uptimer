@@ -1,12 +1,52 @@
 import { env } from 'cloudflare:workers';
+import { MONITORED_SITES } from '../config/sites';
 import type { CheckResult, Incident, Monitor } from './types';
 
 export function getDb(): D1Database {
   const db = (env as Env).DB;
   if (!db) {
-    throw new Error('缺少 D1 binding：請在 wrangler.toml 設定 [[d1_databases]] binding = "DB"');
+    throw new Error('Missing D1 binding: set [[d1_databases]] binding = "DB" in wrangler.toml');
   }
   return db;
+}
+
+function normalizeUrl(url: string): string {
+  return url.replace(/\/$/, '');
+}
+
+/** Upsert D1 monitors from src/config/sites.ts. Extra D1 rows are disabled, not deleted. */
+export async function syncMonitorsFromConfig(db: D1Database): Promise<void> {
+  const existing = await listMonitors(db);
+  const configUrls = new Set(MONITORED_SITES.map((site) => normalizeUrl(site.url)));
+
+  for (const site of MONITORED_SITES) {
+    const expected = site.expectedStatus || 200;
+    const match = existing.find((monitor) => normalizeUrl(monitor.url) === normalizeUrl(site.url));
+    if (match) {
+      await db
+        .prepare(
+          `UPDATE monitors
+           SET name = ?, url = ?, interval_min = 1, expected_status = ?, enabled = 1
+           WHERE id = ?`
+        )
+        .bind(site.name, site.url, expected, match.id)
+        .run();
+    } else {
+      await db
+        .prepare(
+          `INSERT INTO monitors (name, url, interval_min, expected_status, enabled)
+           VALUES (?, ?, 1, ?, 1)`
+        )
+        .bind(site.name, site.url, expected)
+        .run();
+    }
+  }
+
+  for (const monitor of existing) {
+    if (!configUrls.has(normalizeUrl(monitor.url))) {
+      await db.prepare('UPDATE monitors SET enabled = 0 WHERE id = ?').bind(monitor.id).run();
+    }
+  }
 }
 
 export async function listMonitors(db: D1Database): Promise<Monitor[]> {

@@ -1,13 +1,29 @@
 import { env } from 'cloudflare:workers';
+import { STATUS_BRAND } from '../config/brand';
+import { MONITORED_SITES } from '../config/sites';
 import type { ServiceStatus } from './types';
-
-const BRAND = 'Server Status';
-const BRAND_URL = 'https://stat.sorai.tw';
-const BRAND_ICON = 'https://stat.sorai.tw/logo.png';
-const SORAI_HOSTS = new Set(['cms.sorai.tw', 'esports.sorai.tw']);
 
 function isWebhook(url: string): boolean {
   return url.startsWith('https://discord.com/api/webhooks/');
+}
+
+function hostnameOf(value: string): string {
+  try {
+    return new URL(value).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
+
+function usesSoraiWebhook(siteUrl: string): boolean {
+  const host = hostnameOf(siteUrl);
+  const canonical = siteUrl.replace(/\/$/, '');
+  const site = MONITORED_SITES.find((s) => {
+    if (s.url === siteUrl || s.url.replace(/\/$/, '') === canonical) return true;
+    return hostnameOf(s.url) === host && host.length > 0;
+  });
+  const webhooks = site?.webhooks ?? ['primary'];
+  return webhooks.includes('sorai');
 }
 
 function hooksFor(siteUrl: string): string[] {
@@ -15,14 +31,7 @@ function hooksFor(siteUrl: string): string[] {
   const sorai = ((env as Env).DISCORD_WEBHOOK_URL_SORAI || '').trim();
   const hooks: string[] = [];
   if (isWebhook(primary)) hooks.push(primary);
-
-  let host = '';
-  try {
-    host = new URL(siteUrl).hostname.replace(/^www\./, '');
-  } catch {
-    host = '';
-  }
-  if (SORAI_HOSTS.has(host) && isWebhook(sorai)) hooks.push(sorai);
+  if (usesSoraiWebhook(siteUrl) && isWebhook(sorai)) hooks.push(sorai);
   return hooks;
 }
 
@@ -42,26 +51,33 @@ export async function sendDiscordAlert(options: {
   const isRecovered = options.previousStatus === 'down' && options.currentStatus === 'operational';
   const color = isDown ? 0xef4444 : isRecovered ? 0x10b981 : 0x0070f3;
   const title = isDown
-    ? `🚨 Outage Detected: ${options.siteName}`
+    ? `Outage Detected: ${options.siteName}`
     : isRecovered
-      ? `✅ Service Recovered: ${options.siteName}`
-      : `ℹ️ Status Update: ${options.siteName}`;
+      ? `Service Recovered: ${options.siteName}`
+      : `Status Update: ${options.siteName}`;
   const description = isDown
     ? `**${options.siteName}** (${options.url}) is unreachable or returning error responses.`
     : isRecovered
       ? `**${options.siteName}** (${options.url}) is back online and responding normally.`
       : `**${options.siteName}** status changed.`;
   const statusText = isDown
-    ? `🔴 DOWN (${options.statusCode || 'Timeout'})`
-    : `🟢 UP (${options.statusCode})`;
+    ? `DOWN (${options.statusCode || 'Timeout'})`
+    : `UP (${options.statusCode})`;
+
+  let brandHost = 'stat.sorai.tw';
+  try {
+    brandHost = new URL(STATUS_BRAND.url).hostname;
+  } catch {
+    /* keep default */
+  }
 
   const embed = {
-    author: { name: BRAND, icon_url: BRAND_ICON, url: BRAND_URL },
+    author: { name: STATUS_BRAND.name, icon_url: STATUS_BRAND.icon, url: STATUS_BRAND.url },
     title,
     description,
     url: options.url,
     color,
-    thumbnail: { url: BRAND_ICON },
+    thumbnail: { url: STATUS_BRAND.icon },
     fields: [
       { name: 'Service', value: `[${options.siteName}](${options.url})`, inline: true },
       { name: 'Status', value: statusText, inline: true },
@@ -70,13 +86,13 @@ export async function sendDiscordAlert(options: {
         ? [{ name: 'Error Details', value: '```' + options.error.substring(0, 200) + '```', inline: false }]
         : []),
     ],
-    footer: { text: `${BRAND} · stat.sorai.tw`, icon_url: BRAND_ICON },
+    footer: { text: `${STATUS_BRAND.name} \u00b7 ${brandHost}`, icon_url: STATUS_BRAND.icon },
     timestamp: new Date().toISOString(),
   };
 
   const payload = JSON.stringify({
-    username: BRAND,
-    avatar_url: BRAND_ICON,
+    username: STATUS_BRAND.name,
+    avatar_url: STATUS_BRAND.icon,
     embeds: [embed],
   });
 

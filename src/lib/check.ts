@@ -32,7 +32,7 @@ export async function probeUrl(
       return { ok: true, status_code: res.status, latency_ms, error: null };
     }
 
-    const error = !statusOk ? `HTTP ${res.status}（預期 ${expectedStatus}）` : `回應未包含關鍵字「${keyword}」`;
+    const error = !statusOk ? `HTTP ${res.status}` : `Missing keyword "${keyword}"`;
     return { ok: false, status_code: res.status, latency_ms, error };
   } catch (err) {
     const latency_ms = Date.now() - started;
@@ -65,7 +65,7 @@ export async function probeFirstOk(
   keyword?: string | null
 ): Promise<ProbeResult> {
   const unique = [...new Set(urls.filter(Boolean))];
-  let last: ProbeResult = { ok: false, status_code: null, latency_ms: 0, error: '沒有探測網址' };
+  let last: ProbeResult = { ok: false, status_code: null, latency_ms: 0, error: 'No probe URL' };
   for (const url of unique) {
     last = await probeUrl(url, expectedStatus, keyword);
     if (last.ok) return last;

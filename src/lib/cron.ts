@@ -1,11 +1,12 @@
 import { MONITORED_SITES } from '../config/sites';
 import type { Monitor, ProbeResult, ServiceStatus } from './types';
-import { listDueMonitors, openIncident } from './db';
+import { listDueMonitors, openIncident, syncMonitorsFromConfig } from './db';
 import { probeFirstOk } from './check';
 import { sendDiscordAlert } from './discord';
 import { siteForMonitor } from './status';
 
 export async function runDueChecks(db: D1Database): Promise<{ checked: number; results: Array<{ id: number; ok: boolean }> }> {
+  await syncMonitorsFromConfig(db);
   const due = await listDueMonitors(db);
   const probes = await Promise.all(
     due.map(async (monitor) => {
@@ -30,6 +31,7 @@ export async function runDueChecks(db: D1Database): Promise<{ checked: number; r
 }
 
 export async function runAllChecks(db: D1Database): Promise<{ checked: number; results: Array<{ id: number; ok: boolean }> }> {
+  await syncMonitorsFromConfig(db);
   const { results } = await db.prepare('SELECT * FROM monitors WHERE enabled = 1 ORDER BY id ASC').all<Monitor>();
   const due = results ?? [];
   const probes = await Promise.all(
@@ -83,7 +85,7 @@ export async function recordCheck(db: D1Database, monitor: Monitor, probe: Probe
   if (confirmedDown && !open) {
     opened = true;
     stmts.push(
-      db.prepare(`INSERT INTO incidents (monitor_id, reason) VALUES (?, ?)`).bind(monitor.id, probe.error || '服務異常')
+      db.prepare(`INSERT INTO incidents (monitor_id, reason) VALUES (?, ?)`).bind(monitor.id, probe.error || 'Unreachable')
     );
   } else if (probe.ok && open) {
     recovered = true;
